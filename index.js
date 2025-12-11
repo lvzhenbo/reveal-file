@@ -25,7 +25,17 @@ export default async function revealFile(filePath) {
 	} else if (platform === 'win32') {
 		// Explorer expects backslashes
 		const windowsPath = filePath.replaceAll('/', '\\');
-		await execFile('explorer.exe', [`/select,${windowsPath}`]);
+		// Explorer.exe always returns exit code 1 on Windows, even when successful
+		// See: https://github.com/microsoft/WSL/issues/6565
+		try {
+			await execFile('explorer.exe', [`/select,${windowsPath}`]);
+		} catch (error) {
+			// Ignore exit code 1 as it doesn't indicate an actual failure
+			// Re-throw all other errors (other exit codes or spawn errors)
+			if (error.code !== 1) {
+				throw error;
+			}
+		}
 	} else {
 		// Linux: Use D-Bus FileManager1 interface
 		// Convert to file:// URL as required by the D-Bus interface
