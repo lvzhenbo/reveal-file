@@ -2,7 +2,7 @@ import process from 'node:process';
 import path from 'node:path';
 import {promisify} from 'node:util';
 import {fileURLToPath} from 'node:url';
-import childProcess from 'node:child_process';
+import childProcess, {exec} from 'node:child_process';
 
 const execFile = promisify(childProcess.execFile);
 const {platform} = process;
@@ -24,11 +24,11 @@ export default async function revealFile(filePath) {
 		await execFile('open', ['--reveal', filePath]);
 	} else if (platform === 'win32') {
 		// Explorer expects backslashes
-    	const windowsPath = filePath.replaceAll('/', '\\');
-    	// Explorer.exe always returns exit code 1 on Windows, even when successful
-   		// See: https://github.com/microsoft/WSL/issues/6565
-    	// Using `execFile` may cause errors when opening paths containing certain special characters, whereas `exec` does not.
-    	exec(`explorer.exe /select,"${windowsPath}"`);
+		const windowsPath = filePath.replaceAll('/', '\\');
+		// Explorer.exe always returns exit code 1 on Windows, even when successful
+		// See: https://github.com/microsoft/WSL/issues/6565
+		// Using `execFile` may cause errors when opening paths containing certain special characters, whereas `exec` does not.
+		exec(`explorer.exe /select,"${windowsPath}"`);
 	} else {
 		// Linux: Use D-Bus FileManager1 interface
 		// Convert to file:// URL as required by the D-Bus interface
